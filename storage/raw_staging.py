@@ -1,10 +1,10 @@
 """
 storage/raw_staging.py
 
-Menaxhon databazen raw_staging.db - ku ruhen te dhenat "te papregatitura",
-pikerisht ashtu si vijne nga extractors, para se transformers t'i pastrojne.
+manage databazen raw_staging.db - when saved data "iregulated",
 
-Perdorim ne extractors:
+
+used on extractors:
     from storage.raw_staging import get_connection, create_tables, insert_raw_record
 
     conn = get_connection()

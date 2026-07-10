@@ -1,0 +1,21 @@
+# --- HTTP & Extraction ---
+requests==2.32.3
+beautifulsoup4==4.12.3
+PyGithub==2.4.0
+pytrends==4.9.2
+
+# --- Environment / Config ---
+python-dotenv==1.0.1
+
+# --- Storage ---
+# sqlite3 eshte modul standard i Python-it (built-in) - s'ka nevoje te instalohet
+
+# --- Data handling ---
+pandas==2.2.3
+
+# --- Testing ---
+pytest==8.3.3
+pytest-mock==3.14.0
+
+# --- Logging (optional but recommended) ---
+loguru==0.7.2

@@ -28,8 +28,8 @@ PIPELINE_DB_PATH = os.getenv("PIPELINE_DB_PATH", "data/pipeline.db")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FILE_PATH = os.getenv("LOG_FILE_PATH", "logs/pipeline.log")
 
-# --- Google Trends ---
-TRENDS_TIMEFRAME = os.getenv("TRENDS_TIMEFRAME", "today 3-m")
+GOOGLE_SEARCH_TIMEOUT = 15
+GOOGLE_SEARCH_DELAY = 3
 
 
 def validate_config():
