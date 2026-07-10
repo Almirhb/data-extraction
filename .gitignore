@@ -1,0 +1,24 @@
+# Virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables (sekrete)
+.env
+
+# Databases (gjenerohen automatikisht)
+data/*.db
+
+# Logs
+logs/*.log
+
+# PyCharm
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
