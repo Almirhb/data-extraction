@@ -22,3 +22,6 @@ logs/*.log
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated reports
+data/reports/

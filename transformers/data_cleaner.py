@@ -1,202 +1,87 @@
 import json
-import re
-from typing import Any
+
+from transformers.skill_normalizer import normalize_skill_list
 
 
-class DataCleaner:
+def clean_remoteok_record(raw_data: dict) -> list:
     """
-    Cleans extracted records before skill normalization.
-
-    Expected input:
-    [
-        {
-            "skill": " Python ",
-            "interest_score": "85.4",
-            "result_count": "1,200,000",
-        }
-    ]
+    RemoteOK records have a "tags" list which is basically our skills.
+    Returns a normalized list of skill names found in this one job posting.
     """
+    tags = raw_data.get("tags", [])
+    return normalize_skill_list(tags)
 
-    NUMERIC_FIELDS = {
-        "interest_score",
-        "search_visibility_score",
-        "result_count",
-        "count",
-        "frequency",
-        "job_count",
+
+def clean_github_record(raw_data: dict) -> list:
+    """
+    GitHub records have "topics" (tags on the repo) plus a "language" field.
+    Combine both into one list of skills for this repo.
+    """
+    topics = raw_data.get("topics", [])
+    language = raw_data.get("language")
+
+    skills = list(topics)
+    if language:
+        skills.append(language)
+
+    return normalize_skill_list(skills)
+
+
+def clean_stackoverflow_record(raw_data: dict) -> dict:
+    """
+    StackOverflow records are already one skill per record (the tag itself),
+    with a count. Just normalize the tag name.
+    """
+    tag = raw_data.get("tag")
+    count = raw_data.get("count", 0)
+
+    return {
+        "skill": normalize_skill_list([tag])[0] if tag else None,
+        "count": count,
     }
 
-    INTEGER_FIELDS = {
-        "result_count",
-        "count",
-        "frequency",
-        "job_count",
+
+def clean_trends_record(raw_data: dict) -> dict:
+    """
+    Trends records already come as one skill + score, just normalize the name.
+    """
+    skill = raw_data.get("skill")
+    score = raw_data.get("interest_score", 0)
+
+    return {
+        "skill": normalize_skill_list([skill])[0] if skill else None,
+        "score": score,
     }
 
-    @staticmethod
-    def _clean_string(value: str) -> str | None:
-        """
-        Removes unnecessary whitespace from a string.
-        """
-        value = re.sub(r"\s+", " ", value).strip()
 
-        if not value:
-            return None
-
-        return value
-
-    @staticmethod
-    def _clean_number(value: Any) -> int | float | None:
-        """
-        Converts values such as:
-        '1,200,000' -> 1200000
-        '85.4%' -> 85.4
-        """
-        if value is None:
-            return None
-
-        if isinstance(value, bool):
-            return None
-
-        if isinstance(value, (int, float)):
-            return value
-
-        if not isinstance(value, str):
-            return None
-
-        cleaned_value = value.strip()
-
-        if not cleaned_value:
-            return None
-
-        cleaned_value = cleaned_value.replace(",", "")
-        cleaned_value = cleaned_value.replace("%", "")
-
-        try:
-            number = float(cleaned_value)
-
-            if number.is_integer():
-                return int(number)
-
-            return number
-
-        except ValueError:
-            return None
-
-    def _clean_record(self, record: dict) -> dict | None:
-        """
-        Cleans one extracted record.
-        """
-        if not isinstance(record, dict):
-            return None
-
-        cleaned_record = {}
-
-        for key, value in record.items():
-            clean_key = str(key).strip()
-
-            if not clean_key:
-                continue
-
-            if isinstance(value, str):
-                value = self._clean_string(value)
-
-            if clean_key in self.NUMERIC_FIELDS:
-                value = self._clean_number(value)
-
-            cleaned_record[clean_key] = value
-
-        skill = cleaned_record.get("skill")
-
-        if not isinstance(skill, str):
-            return None
-
-        skill = self._clean_string(skill)
-
-        if skill is None:
-            return None
-
-        cleaned_record["skill"] = skill.lower()
-
-        source = cleaned_record.get("source")
-
-        if isinstance(source, str):
-            cleaned_record["source"] = source.strip().lower()
-
-        source_name = cleaned_record.get("source_name")
-
-        if isinstance(source_name, str):
-            cleaned_record["source_name"] = source_name.strip().lower()
-
-        for field in self.INTEGER_FIELDS:
-            value = cleaned_record.get(field)
-
-            if isinstance(value, float):
-                cleaned_record[field] = int(round(value))
-
-        return cleaned_record
-
-    @staticmethod
-    def _remove_duplicates(records: list[dict]) -> list[dict]:
-        """
-        Removes completely identical records.
-        """
-        unique_records = []
-        seen = set()
-
-        for record in records:
-            record_key = json.dumps(
-                record,
-                sort_keys=True,
-                default=str,
-            )
-
-            if record_key in seen:
-                continue
-
-            seen.add(record_key)
-            unique_records.append(record)
-
-        return unique_records
-
-    def transform(self, records: list[dict] | None) -> list[dict]:
-        """
-        Cleans a list of extracted records.
-        """
-        if not records:
-            return []
-
-        cleaned_records = []
-
-        for record in records:
-            cleaned_record = self._clean_record(record)
-
-            if cleaned_record is not None:
-                cleaned_records.append(cleaned_record)
-
-        return self._remove_duplicates(cleaned_records)
+# maps source name -> the right cleaning function for that source's raw shape
+CLEANERS = {
+    "remoteok": clean_remoteok_record,
+    "github": clean_github_record,
+    "stackoverflow": clean_stackoverflow_record,
+    "trends": clean_trends_record,
+}
 
 
-if __name__ == "__main__":
-    sample_data = [
-        {
-            "skill": "  Python  ",
-            "interest_score": "85.4",
-            "result_count": "1,200,000",
-        },
-        {
-            "skill": "JavaScript",
-            "interest_score": "72%",
-            "result_count": 950000,
-        },
-        {
-            "skill": "",
-            "interest_score": 50,
-        },
-    ]
+def clean_raw_records(raw_records: list) -> list:
+    """
+    Takes rows straight from raw_staging.db (id, source, raw_data_json, fetched_at)
+    and runs each one through the right cleaner based on its source.
 
-    cleaner = DataCleaner()
-    cleaned_data = cleaner.transform(sample_data)
+    Returns a list of (source, cleaned_data) tuples, skipping sources we
+    don't have a cleaner for yet.
+    """
+    results = []
 
-    for item in cleaned_data:
-        print(item)
+    for row in raw_records:
+        _, source, raw_data_json, _ = row
+        raw_data = json.loads(raw_data_json)
+
+        cleaner = CLEANERS.get(source)
+        if not cleaner:
+            continue
+
+        cleaned = cleaner(raw_data)
+        results.append((source, cleaned))
+
+    return results
