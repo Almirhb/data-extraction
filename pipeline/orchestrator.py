@@ -3,7 +3,7 @@ from config.settings import validate_config
 from extractors.remoteok_extractor import RemoteOKExtractor
 from extractors.github_extractor import GitHubExtractor
 from extractors.stackoverflow_extractor import StackOverflowExtractor
-from extractors.trends_extractor import TrendsExtractor
+#from extractors.trends_extractor import TrendsExtractor
 
 from storage.raw_staging import get_connection as get_raw_connection, get_records_by_source
 from storage.pipeline_db import (
@@ -18,7 +18,7 @@ from analysis.roi_calculator import calculate_roi_scores
 from analysis.report_generator import generate_report
 
 # google_search_extractor left out for now, still unreliable (Google blocks scraping)
-EXTRACTORS = [RemoteOKExtractor, GitHubExtractor, StackOverflowExtractor, TrendsExtractor]
+EXTRACTORS = [RemoteOKExtractor, GitHubExtractor, StackOverflowExtractor]
 
 
 def run_extractors():
