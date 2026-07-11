@@ -31,12 +31,20 @@ def clean_stackoverflow_record(raw_data: dict) -> dict:
     """
     StackOverflow records are already one skill per record (the tag itself),
     with a count. Just normalize the tag name.
+
+    Note: normalize_skill_list() now filters against a whitelist of known
+    skills, so most tags (which aren't tech skills, or aren't on our list
+    yet) will come back as an empty list. That's expected - we just end up
+    with skill=None for those, and the orchestrator skips None skills.
     """
     tag = raw_data.get("tag")
     count = raw_data.get("count", 0)
 
+    normalized = normalize_skill_list([tag]) if tag else []
+    skill = normalized[0] if normalized else None
+
     return {
-        "skill": normalize_skill_list([tag])[0] if tag else None,
+        "skill": skill,
         "count": count,
     }
 
@@ -44,12 +52,16 @@ def clean_stackoverflow_record(raw_data: dict) -> dict:
 def clean_trends_record(raw_data: dict) -> dict:
     """
     Trends records already come as one skill + score, just normalize the name.
+    Same empty-list handling as clean_stackoverflow_record above.
     """
-    skill = raw_data.get("skill")
+    skill_raw = raw_data.get("skill")
     score = raw_data.get("interest_score", 0)
 
+    normalized = normalize_skill_list([skill_raw]) if skill_raw else []
+    skill = normalized[0] if normalized else None
+
     return {
-        "skill": normalize_skill_list([skill])[0] if skill else None,
+        "skill": skill,
         "score": score,
     }
 
