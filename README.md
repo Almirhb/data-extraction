@@ -1,6 +1,6 @@
 # Data Extraction — Skill ROI Pipeline
 
-A pipeline that collects, cleans, and analyzes data about "skills" (technologies/abilities) from multiple public sources (RemoteOK, GitHub, StackOverflow, Google Trends, Google Search), in order to calculate a **ROI (Return on Investment)** score for each skill — i.e. how much demand it has in the market compared to the cost/time required to learn it.
+A pipeline that collects, cleans, and analyzes data about "skills" from multiple public sources (RemoteOK, GitHub, StackOverflow, Google Trends, Google Search), in order to calculate a **ROI (Return on Investment)** score for each skill — i.e. how much demand it has in the market compared to the cost/time required to learn it.
 
 The final output is a report that helps with decision-making: *which skills are worth investing time in learning*, based on real market data instead of assumptions.
 
