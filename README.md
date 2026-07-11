@@ -96,6 +96,8 @@ This will:
 ```bash
 pytest tests/
 ```
+## Example Output
+![Skill ROI Chart](docs/images/skill_roi_chart.png)
 
 ## Architecture Decisions
 
