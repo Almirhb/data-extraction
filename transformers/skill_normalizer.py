@@ -13,6 +13,29 @@ SKILL_ALIASES = {
     "react.js": "react",
 }
 
+# tags that show up in job postings but aren't actual technical skills -
+# job categories, employment types, department names, etc.
+# RemoteOK especially mixes these in with real skill tags, so we filter them out
+NON_SKILL_TAGS = {
+    "full-time", "part-time", "contract", "freelance", "remote",
+    "exec", "executive", "senior", "junior", "lead", "intern", "internship",
+    "customer support", "customer service", "marketing", "sales",
+    "finance", "accounting", "hr", "human resources", "legal",
+    "education", "teaching", "medical", "healthcare",
+    "ops", "operations", "management", "admin", "administrative",
+    "content writing", "copywriting", "writing",
+    "digital nomad", "travel",
+    "non tech", "no experience",
+}
+
+
+def is_valid_skill(name: str) -> bool:
+    """
+    Returns False for tags that are job categories/employment info
+    rather than actual technical skills.
+    """
+    return name not in NON_SKILL_TAGS
+
 
 def normalize_skill_name(raw_name: str) -> str:
     """
@@ -34,10 +57,10 @@ def normalize_skill_name(raw_name: str) -> str:
 def normalize_skill_list(raw_names: list) -> list:
     """
     Same as above but for a whole list at once, also removes empty
-    strings and duplicates that appear after normalization.
+    strings, non-skill tags, and duplicates that appear after normalization.
     """
     normalized = [normalize_skill_name(name) for name in raw_names]
-    normalized = [name for name in normalized if name]
+    normalized = [name for name in normalized if name and is_valid_skill(name)]
 
     # dedupe while keeping order (set() alone would shuffle things)
     seen = set()
