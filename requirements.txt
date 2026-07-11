@@ -19,3 +19,6 @@ pytest-mock==3.14.0
 
 # --- Logging (optional but recommended) ---
 loguru==0.7.2
+
+# --- Charts ---
+matplotlib==3.9.2

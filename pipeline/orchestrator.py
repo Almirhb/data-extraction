@@ -80,7 +80,17 @@ def run_analysis():
     generate_report(conn)
     conn.close()
 
+    ##ktu fillon
+from analysis.report_generator import generate_report, generate_chart  # nese e ke ne te njejtin file
 
+def run_analysis():
+    print("Running analysis...")
+    conn = get_pipeline_connection()
+    calculate_roi_scores(conn)
+    generate_report(conn)
+    generate_chart(conn)   # <-- shto kete rresht
+    conn.close()
+##ktu mbaron
 def run_pipeline():
     """Runs the whole thing, start to finish. This is what main.py calls."""
     validate_config()
